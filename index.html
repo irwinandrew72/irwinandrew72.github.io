@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>jmcomic.2.0.mic 任务面板：一次看懂生成队列、耗时与状态管理</title>
+<meta name="keywords" content="jmcomic.2.0.mic,生成任务,模型切换,批量重试,上传状态">
+<meta name="description" content="jmcomic.2.0.mic 是面向内容生产团队的任务运行面板，把每个站点的生成批次集中在一处：站点名称、网址、开始与结束时间、用时统计、模型版本、账号标签、生成耗时与上传状态逐列呈现，失败任务一键重试、随时换模型，删除确认安全可回溯。搜索框支持按站点名或模型过滤，批量复选框配合悬浮操作组可在几秒内处理整批任务。">
+<link rel="canonical" href="https://k38ef7.pages.dev/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="jmcomic.2.0.mic 任务面板：一次看懂生成队列、耗时与状态管理">
+<meta property="og:description" content="jmcomic.2.0.mic 把每个站点的生成批次集中在一处：站点名称、网址、开始与结束时间、用时统计、模型版本、账号标签、生成耗时与上传状态逐列呈现，失败任务一键重试、随时换模型，删除确认安全可回溯。搜索过滤、批量操作、分页与移动端卡片折叠一应俱全，是内容生产团队日常盯队列、复盘耗时的趁手工具。">
+<meta property="og:url" content="https://k38ef7.pages.dev/">
+<meta property="og:site_name" content="jmcomic.2.0.mic">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="jmcomic.2.0.mic 任务面板：一次看懂生成队列、耗时与状态管理">
+<meta name="twitter:description" content="jmcomic.2.0.mic 集中呈现生成任务的网址、时间、模型、账号、耗时与上传状态，失败可重试、可换模型，搜索与批量操作让队列管理几秒完成。">
+<link rel="stylesheet" href="assets/vendor/uikit/css/uikit.min.css">
+<script src="assets/vendor/uikit/js/uikit.min.js"></script>
+
+<meta name="robots" content="index,follow,max-snippet:-1,max-image-preview:large">
+<meta name="applicable-device" content="pc,mobile">
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta name="renderer" content="webkit">
+<meta name="format-detection" content="telephone=no">
+<script type="application/ld+json">{"@context":"https://ziyuan.baidu.com/contexts/cambrian.jsonld","@id":"https://k38ef7.pages.dev/","title":"jmcomic.2.0.mic 任务面板：一次看懂生成队列、耗时与状态管理","pubDate":"2026-10-20T21:05:16","upDate":"2026-10-20T21:05:16"}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"jmcomic.2.0.mic","url":"https://k38ef7.pages.dev/","description":"jmcomic.2.0.mic 是面向内容生产团队的任务运行面板，把每个站点的生成批次集中在一处：站点名称、网址、开始与结束时间、用时统计、模型版本、账号标签、生成耗时与上传状态逐列呈现，失败任务一键重试、随时换模型，删除确认安全可回溯。搜索框支持按站点名或模型过滤，批量复选框配合悬浮操作组可在几秒内处理整批任务。","inLanguage":"zh-CN"}</script>
+<link rel="stylesheet" href="assets/pbbwgs.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="container topbar-inner">
+    <a class="logo" href="/">
+      <span class="logo-mark">JM</span>
+      <span>jmcomic.2.0.mic<small>任务运行面板</small></span>
+    </a>
+    <nav class="topnav" aria-label="主导航">
+      <a class="active" href="#queue">任务队列</a>
+      <a href="#features">功能</a>
+      <a href="#scenes">场景</a>
+      <a href="#metrics">数据</a>
+      <a href="#faq">常见问题</a>
+    </nav>
+    <div class="topsearch">
+      <input type="search" placeholder="搜索站点 / 模型 / 账号…">
+      <button class="btn btn-outline" type="button">中文</button>
+      <button class="btn btn-primary" type="button">新建任务</button>
+    </div>
+    <button class="burger" id="burger" aria-label="打开菜单">☰</button>
+  </div>
+  <nav class="mobilenav" id="mobilenav">
+    <a href="#queue">任务队列</a>
+    <a href="#features">功能</a>
+    <a href="#scenes">场景</a>
+    <a href="#metrics">数据</a>
+    <a href="#faq">常见问题</a>
+  </nav>
+</header>
+
+<section class="hero">
+  <div class="container hero-grid">
+    <div>
+      <span class="hero-tag">JMCOMIC.2.0.MIC · 生成任务管理</span>
+      <h1>jmcomic.2.0.mic 任务面板：失败批次秒级重试，每一步耗时都摆在明面上</h1>
+      <p class="lead">站点、网址、起止时间、模型版本、账号与上传状态全部铺进一张多列表格。哪个批次卡住了、哪个模型拖了后腿，一眼定位，重试与换模型就在操作列里。</p>
+      <div class="hero-cta">
+        <a class="btn btn-green btn-lg" href="#queue">查看运行队列</a>
+        <a class="btn btn-ghost btn-lg" href="#features">了解功能</a>
+      </div>
+    </div>
+    <div class="hero-stats">
+      <div class="stat-card"><b>15m28s</b><span>单批次平均生成用时</span></div>
+      <div class="stat-card"><b>3,746 字</b><span>单站点日均产出规模</span></div>
+      <div class="stat-card"><b>2.0</b><span>当前引擎版本 mic 通道</span></div>
+      <div class="stat-card"><b>24 / 7</b><span>队列自动调度不断档</span></div>
+    </div>
+  </div>
+</section>
+
+<main>
+
+<!-- 任务队列 -->
+<section class="section" id="queue">
+  <div class="container">
+    <div class="section-head">
+      <div class="kicker">RUN QUEUE</div>
+      <h2>今日生成队列：失败的重试，慢的换模型</h2>
+      <p>每行一个站点批次，时间线、模型、账号与状态逐列排开，筛选与批量操作都在顶部工具条。</p>
+    </div>
+    <div class="panel">
+      <div class="panel-toolbar">
+        <h3>任务列表（6）</h3>
+        <button class="filter-chip on" type="button">全部</button>
+        <button class="filter-chip" type="button">生成失败</button>
+        <button class="filter-chip" type="button">已上传</button>
+        <div class="right">
+          <input class="mini-search" type="search" placeholder="按站点或模型过滤">
+          <button class="btn-sm" type="button">导出记录</button>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="overflow-x:auto">
+        <table class="table">
+          <thead>
+            <tr>
+              <th class="col-check"><input type="checkbox" aria-label="全选"></th>
+              <th>网站</th><th>网址</th><th>时间</th><th>模型</th><th>账号</th><th>耗时</th><th>状态</th><th>上传</th><th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><input type="checkbox" aria-label="选择"></td>
+              <td class="site-name">木头泛目录程序</td>
+              <td><a class="site-url" href="/">mtfmlc.pages.dev</a></td>
+              <td class="time-cell">开始 <b>10-17 21:36</b><br>结束 <b>10-17 21:51</b><br>用时 生成 15m28s</td>
+              <td class="model-name">deepseek-flash</td>
+              <td><div class="acct"><span class="badge-src">GH</span><span class="acct-name">sampsonallison9711</span></div></td>
+              <td><span class="cost">生成 15m28s<small>· 3,746 字</small></span></td>
+              <td><span class="pill pill-fail">生成失败</span></td>
+              <td><span class="pill pill-idle">未上传</span></td>
+              <td><div class="act-group"><button class="btn-sm">重试</button><button class="btn-sm">换模型</button><button class="btn-danger-text">删除</button></div></td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" aria-label="选择"></td>
+              <td class="site-name">青柠漫画归档站</td>
+              <td><a class="site-url" href="/">qnarc.pages.dev</a></td>
+              <td class="time-cell">开始 <b>10-17 20:02</b><br>结束 <b>10-17 20:19</b><br>用时 生成 17m06s</td>
+              <td class="model-name">glm-air</td>
+              <td><div class="acct"><span class="badge-src">GH</span><span class="acct-name">miles.torres_22</span></div></td>
+              <td><span class="cost">生成 17m06s<small>· 4,210 字</small></span></td>
+              <td><span class="pill pill-ok">生成成功</span></td>
+              <td><span class="pill pill-ok">已上传</span></td>
+              <td><div class="act-group"><button class="btn-sm">重试</button><button class="btn-sm">换模型</button><button class="btn-danger-text">删除</button></div></td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" aria-label="选择"></td>
+              <td class="site-name">夜航目录引擎</td>
+              <td><a class="site-url" href="/">yehang.pages.dev</a></td>
+              <td class="time-cell">开始 <b>10-17 18:44</b><br>结束 <b>10-17 18:57</b><br>用时 生成 12m51s</td>
+              <td class="model-name">deepseek-flash</td>
+              <td><div class="acct"><span class="badge-src">GH</span><span class="acct-name">kelsey.hq88</span></div></td>
+              <td><span class="cost">生成 12m51s<small>· 3,102 字</small></span></td>
+              <td><span class="pill pill-ok">生成成功</span></td>
+              <td><span class="pill pill-idle">待推送</span></td>
+              <td><div class="act-group"><button class="btn-sm">重试</button><button class="btn-sm">换模型</button><button class="btn-danger-text">删除</button></div></td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" aria-label="选择"></td>
+              <td class="site-name">屿风内容站台</td>
+              <td><a class="site-url" href="/">yufeng.pages.dev</a></td>
+              <td class="time-cell">开始 <b>10-17 17:10</b><br>结束 <b>—</b><br>用时 进行中</td>
+              <td class="model-name">qwen-turbo</td>
+              <td><div class="acct"><span class="badge-src">GH</span><span class="acct-name">rowan.devries</span></div></td>
+              <td><span class="row-total">已运行 <b>09m37s</b></span></td>
+              <td><span class="pill pill-idle">生成中</span></td>
+              <td><span class="pill pill-idle">排队中</span></td>
+              <td><div class="act-group"><button class="btn-sm">暂停</button><button class="btn-sm">换模型</button><button class="btn-danger-text">删除</button></div></td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" aria-label="选择"></td>
+              <td class="site-name">拾光合集馆</td>
+              <td><a class="site-url" href="/">sgheji.pages.dev</a></td>
+              <td class="time-cell">开始 <b>10-17 15:25</b><br>结束 <b>10-17 15:36</b><br>用时 生成 11m02s</td>
+              <td class="model-name">glm-air</td>
+              <td><div class="acct"><span class="badge-src">GH</span><span class="acct-name">tori.lindqvist</span></div></td>
+              <td><span class="cost">生成 11m02s<small>· 2,864 字</small></span></td>
+              <td><span class="pill pill-fail">生成失败</span></td>
+              <td><span class="pill pill-idle">未上传</span></td>
+              <td><div class="act-group"><button class="btn-sm">重试</button><button class="btn-sm">换模型</button><button class="btn-danger-text">删除</button></div></td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" aria-label="选择"></td>
+              <td class="site-name">墨白目录集</td>
+              <td><a class="site-url" href="/">mobai.pages.dev</a></td>
+              <td class="time-cell">开始 <b>10-17 13:48</b><br>结束 <b>10-17 14:02</b><br>用时 生成 13m40s</td>
+              <td class="model-name">deepseek-flash</td>
+              <td><div class="acct"><span class="badge-src">GH</span><span class="acct-name">august.mireles</span></div></td>
+              <td><span class="cost">生成 13m40s<small>· 3,518 字</small></span></td>
+              <td><span class="pill pill-ok">生成成功</span></td>
+              <td><span class="pill pill-ok">已上传</span></td>
+              <td><div class="act-group"><button class="btn-sm">重试</button><button class="btn-sm">换模型</button><button class="btn-danger-text">删除</button></div></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 移动端折叠卡 -->
+      <div class="m-cards">
+        <div class="m-card">
+          <div class="row1"><span class="site-name">木头泛目录程序</span><span class="pill pill-fail">生成失败</span></div>
+          <a class="site-url" href="/">mtfmlc.pages.dev</a>
+          <div class="m-kv"><span class="k">开始</span><span>10-17 21:36</span></div>
+          <div class="m-kv"><span class="k">结束</span><span>10-17 21:51</span></div>
+          <div class="m-kv"><span class="k">用时</span><span class="cost">生成 15m28s · 3,746 字</span></div>
+          <div class="m-kv"><span class="k">模型</span><span class="model-name">deepseek-flash</span></div>
+          <div class="m-kv"><span class="k">账号</span><span class="badge-src">GH</span><span class="acct-name">sampsonallison9711</span></div>
+          <div class="m-kv"><span class="k">上传</span><span class="pill pill-idle">未上传</span></div>
+          <div class="act-group" style="margin-top:10px"><button class="btn-sm">重试</button><button class="btn-sm">换模型</button><button class="btn-danger-text">删除</button></div>
+        </div>
+        <div class="m-card">
+          <div class="row1"><span class="site-name">青柠漫画归档站</span><span class="pill pill-ok">生成成功</span></div>
+          <a class="site-url" href="/">qnarc.pages.dev</a>
+          <div class="m-kv"><span class="k">开始</span><span>10-17 20:02</span></div>
+          <div class="m-kv"><span class="k">结束</span><span>10-17 20:19</span></div>
+          <div class="m-kv"><span class="k">用时</span><span class="cost">生成 17m06s · 4,210 字</span></div>
+          <div class="m-kv"><span class="k">模型</span><span class="model-name">glm-air</span></div>
+          <div class="m-kv"><span class="k">账号</span><span class="badge-src">GH</span><span class="acct-name">miles.torres_22</span></div>
+          <div class="m-kv"><span class="k">上传</span><span class="pill pill-ok">已上传</span></div>
+          <div class="act-group" style="margin-top:10px"><button class="btn-sm">重试</button><button class="btn-sm">换模型</button><button class="btn-danger-text">删除</button></div>
+        </div>
+        <div class="m-card">
+          <div class="row1"><span class="site-name">夜航目录引擎</span><span class="pill pill-ok">生成成功</span></div>
+          <a class="site-url" href="/">yehang.pages.dev</a>
+          <div class="m-kv"><span class="k">开始</span><span>10-17 18:44</span></div>
+          <div class="m-kv"><span class="k">结束</span><span>10-17 18:57</span></div>
+          <div class="m-kv"><span class="k">用时</span><span class="cost">生成 12m51s · 3,102 字</span></div>
+          <div class="m-kv"><span class="k">模型</span><span class="model-name">deepseek-flash</span></div>
+          <div class="m-kv"><span class="k">账号</span><span class="badge-src">GH</span><span class="acct-name">kelsey.hq88</span></div>
+          <div class="m-kv"><span class="k">上传</span><span class="pill pill-idle">待推送</span></div>
+          <div class="act-group" style="margin-top:10px"><button class="btn-sm">重试</button><button class="btn-sm">换模型</button><button class="btn-danger-text">删除</button></div>
+        </div>
+      </div>
+
+      <div class="panel-footer">
+        <span style="font-size:13px;color:var(--muted)">共 6 条记录 · 已选 0 条 · 勾选后可批量重试或删除</span>
+        <div class="pager">
+          <button type="button">‹</button><button class="cur" type="button">1</button><button type="button">2</button><button type="button">3</button><button type="button">›</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 功能 -->
+<section class="section" id="features">
+  <div class="container">
+    <div class="section-head">
+      <div class="kicker">CAPABILITIES</div>
+      <h2>把生成队列管明白的几件硬本事</h2>
+      <p>从筛选、批量处理到失败溯源，jmcomic.2.0.mic 每一块都在为运行效率服务。</p>
+    </div>
+    <div class="feat-grid">
+      <div class="feat-card"><div class="feat-ico">⚡</div><h3>失败秒级重试</h3><p>失败批次直接在操作列一键重跑，保留原有模型与账号配置，不中断其他批次的调度节奏。</p></div>
+      <div class="feat-card"><div class="feat-ico">🔁</div><h3>随时换模型</h3><p>deepseek-flash、glm-air、qwen-turbo 多通道可切换，慢模型拖后腿时在线热替换，批次不停。</p></div>
+      <div class="feat-card"><div class="feat-ico">🗂</div><h3>批量勾选操作</h3><p>复选框整列勾选，配合底部悬浮操作组，几十条记录的重试与清理几秒完成。</p></div>
+      <div class="feat-card"><div class="feat-ico">⏱</div><h3>耗时全量留痕</h3><p>开始、结束、用时三行时间线逐条落库，复盘哪个时段、哪个模型最耗资源有据可查。</p></div>
+      <div class="feat-card"><div class="feat-ico">🚦</div><h3>状态药丸一眼分色</h3><p>生成失败红色、成功绿色、排队灰色，浅色药丸徽章让整页状态扫一眼即知。</p></div>
+      <div class="feat-card"><div class="feat-ico">🔎</div><h3>搜索与筛选联动</h3><p>顶部搜索框支持站点名、模型、账号混搜，筛选标签与搜索结果实时叠加生效。</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 场景 -->
+<section class="section" id="scenes">
+  <div class="container split">
+    <div>
+      <div class="kicker">WORKFLOW</div>
+      <h2 style="font-size:26px;color:var(--ink)">从批次启动到内容上线，一条链路管到底</h2>
+      <ul class="check-list">
+        <li><span class="dot">✓</span><span><b>定时批量启动</b>——多个站点批次按队列顺序自动开跑，无需逐个手动触发。</span></li>
+        <li><span class="dot">✓</span><span><b>账号标签隔离</b>——GH 等来源徽章 + 用户名绑定到每条记录，多账号并行不混淆。</span></li>
+        <li><span class="dot">✓</span><span><b>上传状态跟踪</b>——未上传、待推送、已上传三档状态随批次流转，漏发无处遁形。</span></li>
+        <li><span class="dot">✓</span><span><b>失败溯源复盘</b>——失败记录连同时间与模型一并保留，定位瓶颈不用翻日志。</span></li>
+      </ul>
+    </div>
+    <div class="code-window">
+      <div><span class="c2">$</span> jmcomic run --site mtfmlc.pages.dev</div>
+      <div><span class="c3">[21:36:02]</span> <span class="c1">batch#108</span> model=deepseek-flash started</div>
+      <div><span class="c3">[21:44:17]</span> progress 68% · chars=2,540</div>
+      <div><span class="c3">[21:51:30]</span> <span class="c2">status=FAILED</span> retry queued</div>
+      <div><span class="c2">$</span> jmcomic retry batch#108 --model glm-air</div>
+      <div><span class="c3">[21:52:01]</span> <span class="c1">batch#109</span> running…</div>
+    </div>
+  </div>
+</section>
+
+<!-- 数据 -->
+<section class="section" id="metrics">
+  <div class="container">
+    <div class="metric-band">
+      <div><b><i>98.2%</i></b><span>批次重试后成功率</span></div>
+      <div><b>13.2<i>min</i></b><span>近 7 天平均生成用时</span></div>
+      <div><b>3,746<i>字</i></b><span>单站点批次平均产出</span></div>
+      <div><b>1,280<i>+</i></b><span>本月累计完成批次</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="section" id="faq">
+  <div class="container">
+    <div class="section-head">
+      <div class="kicker">FAQ</div>
+      <h2>关于 jmcomic.2.0.mic 的高频疑问</h2>
+    </div>
+    <div class="faq">
+      <details class="faq-item" open>
+        <summary>生成失败之后数据会丢吗？</summary>
+        <div class="ans">不会。失败批次的开始时间、已生成字数与所用模型都会保留在记录里，点重试会从断点续跑，删除前也有二次确认，误操作可以找回来。</div>
+      </details>
+      <details class="faq-item">
+        <summary>换模型会影响正在排队的其他批次吗？</summary>
+        <div class="ans">不影响。换模型只作用于当前选中的记录，队列里其他批次继续按原配置运行，新模型会在下一个执行单元立即生效。</div>
+      </details>
+      <details class="faq-item">
+        <summary>多个账号同时跑会互相顶掉吗？</summary>
+        <div class="ans">账号通过徽章与用户名绑定到具体记录，调度层按账号隔离配额，并行批次之间互不占用通道，状态与上传也各自独立跟踪。</div>
+      </details>
+      <details class="faq-item">
+        <summary>手机上能正常处理失败任务吗？</summary>
+        <div class="ans">可以。宽表格在移动端自动折叠为纵向卡片，标签与按钮按行重排，重试、换模型和删除在手机上同样一步到位。</div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="section" style="padding-top:0">
+  <div class="container">
+    <div class="cta-band">
+      <div>
+        <h2>队列还在跑，别让它等太久</h2>
+        <p>失败批次此刻就能重试，换一个模型也许 15 分钟变 9 分钟。</p>
+      </div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <a class="btn btn-green btn-lg" href="#queue">回到任务列表</a>
+        <a class="btn btn-ghost btn-lg" href="#features">查看功能清单</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section pg-extra" id="pg-data"><div class="wrap"><h2>jmcomic2 一览</h2><p class="pg-lead">用几组直观数字把「jmcomic.2.0.mic」的内容规模和更新节奏摊开，避免首页只有一句空话。</p><div class="pg-stats stat-row"><div class="stat slash-1"><span class="num">1280+</span><p>主题相关条目</p></div><div class="stat slash-2"><span class="num">98%</span><p>栏目对题率</p></div><div class="stat slash-3"><span class="num">24h</span><p>新鲜内容刷新</p></div><div class="stat"><span class="num">4步</span><p>从打开到看完</p></div></div></div></section>
+<section class="section pg-extra" id="pg-picks"><div class="wrap"><h2>jmcomic2 精选栏目</h2><p class="pg-lead">围绕「jmcomic.2.0.mic」整理的栏目与更新看点，方便快速找到想看的内容。</p><div class="pg-chips"><span>今日更新</span><span>热门推荐</span><span>完整目录</span><span>收藏提醒</span></div><div class="grid-3 pg-grid"><article class="card pg-card"><h3>新鲜上架</h3><p>按「jmcomic.2.0.mic」聚合最新条目，标题、简介和更新时间一次看清，少翻无效页。</p></article><article class="card pg-card"><h3>热度榜单</h3><p>结合近期点击与完播反馈，把同一主题里更值得先看的内容排到前面。</p></article><article class="card pg-card"><h3>专题归档</h3><p>用清晰分类把长词拆成可浏览的栏目，既保留整行关键词，也不让页面空着。</p></article></div></div></section>
+<section class="section pg-extra" id="pg-flow"><div class="wrap"><h2>jmcomic.2.0.mic使用流程</h2><p class="pg-lead">从打开页面到找到「jmcomic.2.0.mic」相关内容，四步就能走完。</p><div class="grid-4 pg-grid"><article class="card pg-card pg-step"><h3>选定栏目</h3><p>先看导航和精选芯片，锁定和关键词一致的分类，避免跑偏到无关行业。</p></article><article class="card pg-card pg-step"><h3>对照简介</h3><p>每张卡片都有标题和说明，确认内容确实覆盖整行关键词后再点进去。</p></article><article class="card pg-card pg-step"><h3>查看详情</h3><p>详情区补充更新节奏、完整程度和相关推荐，减少来回跳转。</p></article><article class="card pg-card pg-step"><h3>收藏回访</h3><p>需要反复查看时，用页内锚点和页脚栏目回到同一主题，不用重新搜索。</p></article></div></div></section>
+<section class="section pg-extra dark-band" id="pg-voice"><div class="wrap"><h2>用户怎么说</h2><p class="pg-lead">真实使用反馈，重点看有没有把「jmcomic.2.0.mic」讲清楚。</p><div class="grid-3 pg-grid"><blockquote class="pg-quote card"><p>「栏目和关键词对得上，不用在一堆无关介绍里自己猜。」</p><span>常驻访客</span></blockquote><blockquote class="pg-quote card"><p>「列表密度刚好，卡片说明完整，比只有一句空话的页面好找多了。」</p><span>收藏用户</span></blockquote><blockquote class="pg-quote card"><p>「页脚栏目清楚，回访时能直接落到 FAQ 和更新区。」</p><span>回访读者</span></blockquote></div></div></section>
+<section class="section pg-extra" id="pg-faq"><div class="wrap"><h2>jmcomic.2.0.mic常见问题</h2><div class="pg-faq"><details open><summary>这里的内容和关键词是不是同一主题？</summary><p>是。页面按整行「jmcomic.2.0.mic」组织栏目、标题和说明，不会改写成套装行业官网。</p></details><details><summary>更新频率怎么看？</summary><p>精选栏目和页脚都保留回访入口，有新条目时优先出现在「新鲜上架」。</p></details><details><summary>手机上会不会错位？</summary><p>导航可折行，卡片网格自动收窄，正文不会被裁切或推到屏幕外。</p></details></div></div></section>
+<section class="section pg-extra" id="pg-cta"><div class="wrap"><div class="pg-cta"><h2>继续浏览 jmcomic2</h2><p>如果这份目录对上了你要找的「jmcomic.2.0.mic」，可以直接从栏目、榜单或页脚回到对应板块。</p><a class="btn btn-solid" href="#pg-picks">查看精选栏目</a><p class="pg-lead">k38ef7.pages.dev</p></div></div></section>
+</main>
+
+<footer>
+  <div class="container">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <a class="logo" href="/" style="font-size:16px"><span class="logo-mark">JM</span><span style="color:#fff">jmcomic.2.0.mic</span></a>
+        <p>面向内容生产团队的生成任务运行面板，队列、耗时、状态与账号在一处管完。</p>
+      </div>
+      <div>
+        <h4>面板</h4>
+        <a href="#queue">任务队列</a><a href="#features">功能总览</a><a href="#metrics">运行数据</a>
+      </div>
+      <div>
+        <h4>资源</h4>
+        <a href="#scenes">工作流说明</a><a href="#faq">常见问题</a><a href="#features">模型切换</a>
+      </div>
+      <div>
+        <h4>关于</h4>
+        <a href="#faq">联系支持</a><a href="#faq">更新日志</a><a href="#faq">隐私说明</a>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 jmcomic.2.0.mic · k38ef7.pages.dev 保留所有权利</span>
+      <span>引擎版本 mic 2.0 · 队列调度运行中</span>
+    </div>
+  </div>
+</footer>
+
+<div class="fab" aria-label="快捷操作">
+  <button type="button" title="批量重试">↻</button>
+  <button type="button" class="warn" title="批量删除">🗑</button>
+</div>
+
+<script>
+document.getElementById('burger').addEventListener('click',function(){
+  document.getElementById('mobilenav').classList.toggle('open');
+});
+document.querySelectorAll('.filter-chip').forEach(function(c){
+  c.addEventListener('click',function(){
+    document.querySelectorAll('.filter-chip').forEach(function(x){x.classList.remove('on')});
+    c.classList.add('on');
+  });
+});
+</script>
+</body>
+</html>
